@@ -15,9 +15,10 @@ object Orchestrator extends Serializable {
         }
 
         logger.info("Parameters definition")
-        val productDimensionPath: String = "data_lake/edw/retail_sales/product"
-        val retailerDimensionPath: String = "data_lake/edw/retail_sales/retailer"
-        val skuEDWPath: String = if (args.length == 2) args(1) else "data_lake/edw/etl/sku_mapper"
+        val edwPath: String = "data_lake/edw/retail_sales"
+        val edwControlPath: String = "data_lake/edw/control/retail_sales"
+        val skuEDWPath: String = if (args.length > 1) args(1) else "data_lake/edw/etl/sku_mapper"
+        val dateEdwPath: String = if (args.length > 2) args(2) else "data_lake/edw/retail_sales/date"
 
         logger.info("Starting spark session")
         val spark = SparkSession.builder()
@@ -25,14 +26,17 @@ object Orchestrator extends Serializable {
           .getOrCreate()
 
         logger.info("Initializing Pipeline class")
-        val pipelineRunner = new MatPipeline(
-            spark, skuEDWPath, args(0), productDimensionPath, retailerDimensionPath)
+        val pipelineRunner = new MatEposPipeline(
+            spark, edwPath, skuEDWPath, dateEdwPath, args(0), edwControlPath)
 
         logger.info("Loading Product Dimension")
         pipelineRunner.loadProductDimension()
 
         logger.info("Loading Retailer Dimension")
         pipelineRunner.loadRetailerDimension()
+
+        logger.info("Loading Sales Fact")
+        pipelineRunner.loadSalesFact()
 
         if (spark.sparkContext.appName == getSparkAppConf("spark.conf").get("spark.app.name")) {
             spark.stop()

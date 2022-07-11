@@ -8,7 +8,8 @@ class FunctionsTest extends FunSuite{
     test("test getSparkAppConf") {
         val sparkAppConf = Functions.getSparkAppConf("src/test/data/spark.conf")
 
-        assert(sparkAppConf.get("spark.app.name") == "Retail Sales", "spark.app.name should be Retail Sales")
+        assert(sparkAppConf.get("spark.app.name") == "Retail Sales Test Suite",
+            "spark.app.name should be Retail Sales")
         assert(sparkAppConf.get("spark.master") == "local[3]", "spark.app.name should be Retail Sales")
     }
 

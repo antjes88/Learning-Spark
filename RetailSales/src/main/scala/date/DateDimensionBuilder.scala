@@ -4,7 +4,7 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.{col, date_format, udf}
-import org.apache.spark.sql.types.IntegerType
+import org.apache.spark.sql.types.{IntegerType, LongType}
 import retailsales.Functions.getSparkAppConf
 
 import java.time.LocalDate
@@ -20,10 +20,11 @@ object DateDimensionBuilder extends Serializable {
         val dateEdwPath: String = if (args.length > 0) args(0) else "data_lake/edw/retail_sales/date"
         val fromDate: String = if (args.length > 0) args(1) else "01/01/2022"
         val toDate: String = if (args.length > 0) args(2) else "01/01/2023"
+        val sparkAppConfigFile: String = if (args.length > 0) args(3) else "sparkApiFake.conf"
 
         logger.info("Creating spark Session")
         val spark = SparkSession.builder()
-          .config(getSparkAppConf("sparkApiFake.conf"))
+          .config(getSparkAppConf(sparkAppConfigFile))
           .getOrCreate()
 
         logger.info(s"Creating LocalDate sequence from $fromDate to $toDate")
@@ -35,7 +36,7 @@ object DateDimensionBuilder extends Serializable {
         logger.info("Creating Date Dimension Dataframe")
         import spark.implicits._
         val dateDimension = dateSeq.toDF("Date")
-          .withColumn("DateId", date_format(col("Date"), "yyyyMMdd"))
+          .withColumn("DateId", date_format(col("Date"), "yyyyMMdd").cast(LongType))
           .withColumn("WeekEnding", weekEndingFinderUDF(col("Date")))
           .withColumn("WeekCommencing", weekCommencingFinderUDF(col("Date")))
           .withColumn("DayOfWeekName", date_format(col("Date"), "EEEE"))
@@ -50,6 +51,8 @@ object DateDimensionBuilder extends Serializable {
           .select("DateId", "Date", "WeekEnding", "WeekCommencing", "DayOfWeekName", "DayOfWeekNumber",
               "DayOfMonth", "DayOfYear", "MonthName", "MonthNumber", "QuarterNumber", "QuarterPresentation", "Year")
 
+        // todo: write some tests to check uniqueness
+
         logger.info(s"Writing Date Dimension to $dateEdwPath")
         dateDimension.write
           .format("parquet")
@@ -57,7 +60,9 @@ object DateDimensionBuilder extends Serializable {
           .save(dateEdwPath)
 
         logger.info("Finishing Spark Session")
-        spark.stop()
+        if (spark.sparkContext.appName == getSparkAppConf("spark.conf").get("spark.app.name")) {
+            spark.stop()
+        }
     }
 
     def weekEndingFinder(myDate: Date): Date = {

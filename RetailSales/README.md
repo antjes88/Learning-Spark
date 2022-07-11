@@ -38,19 +38,19 @@ the source name and the third the topic.
 - The EDW will follow Dimensional Modelling architecture.
 - All pipelines will have the next suite test:
   - Unit testing and Unit Integration Testing develop with ScalaTest and sample data provided by source data providers.
-  - A fake creator of source files to populate several iterations of the source files.
+  - A fake creator of sources to be able to populate several test iterations.
     
 ## Data Catalog
 This solution deals with EPOS data from supermarkets. Data sources for EPOS data can be either directly provided by 
 supermarkets or a data broker. The data provided is aggregated by week, retailer and product and include measures such 
-as number of units sold and the amount of money obtained from those sales. All data is delimited to the United Kingdom.
+as number of units sold and the amount of money obtained from those sales. All data is delimited to the United Kingdom,
+so currency is the British Pound (GBP).
 Also, a SKU mapper is provided by the internal department interested on this data to improve insight.
 
 ### Source Data
 There are 2 type of EPOS source files digested into the EDW:  
 1. MAT: it is an imaginary data broker that provides EPOS data for Tesco, Marks and Aldi on a weekly basis. File format 
-is *.csv. The pipeline code can be found on _class MatPipeline_. The raw files are saved into the Data Lake on the 
-next path: _raw/external/mat/{week_ending}_. 
+is *.csv. The raw files are saved into the Data Lake on the next path: _raw/external/mat/{week_ending}_. 
 The source file columns are as follows:
 
 | Column Name | Data Type | Description                                                                            | Sample     |
@@ -61,7 +61,7 @@ The source file columns are as follows:
 | Units       | Float     | Number of Units sold                                                                   | 330.0      |
 | Sales       | Float     | Amount of Pounds obtain for the sales                                                  | 480.21     |
 
-2. **_THIS IS YET TO BE WRITTEN YET_**
+2. **_THIS IS YET TO BE WRITTEN_**
 
 The **_SKU Mapper_** is an ETL resource that is populated into: _edw/etl/sku_mapper_ and 
 _raw/internal/Marketing/sku_mapper_. The columns are as follows:
@@ -76,10 +76,19 @@ _raw/internal/Marketing/sku_mapper_. The columns are as follows:
 ### EDW - Data Model
 The conceptual data model for the EDW is as depicted on the picture below.
 
-The Date dimension is created one-off with the next CLASS 
+The Date dimension is created one-off with the object **DateDimensionBuilder** found at 
+_src/main/scala/date/DateDimensionBuilder_
 
 ## How to execute the code
+Talk here about ApiFake.
+
+### Pipelines 
+The Data Processing Layer is composed of the next pipelines:
+- EPOS family:
+  - **Mat Pipeline:** it is to populate data provided by the data broker MAT as indicated on the section _Source Data_.
+  The pipeline code can be found on _class MatPipeline_(). The entry point to this pipeline is 
+  - **asdasd**
+- Date Pipeline: 
 
 
-### Pipeline 
-DATE DIMENSION PIPELINE TALK A BIT ABOUT IT
+## Test Environment

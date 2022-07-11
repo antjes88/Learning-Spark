@@ -14,6 +14,13 @@ trait DataFrameUtilities {
         }
     }
 
+    def checkDuplicationOnListOfColumns(df: DataFrame, columns: List[String], tableName: String): Unit = {
+        if (df.count() != df.select(columns.map(col): _*).distinct().count()) {
+            //            logger.error(s"ETL: $tableName - ${columns.toString()} must NOT have duplicates")
+            throw new Exception(s"ETL: $tableName - ${columns.toString()} must NOT have duplicates")
+        }
+    }
+
     def checkColumnWithoutNulls(df: DataFrame, column: String, tableName: String): Unit = {
         if (df.where(isnull(col(column))).count() > 0) {
 //            logger.error(s"ETL: $tableName - $column must NOT have null values")
